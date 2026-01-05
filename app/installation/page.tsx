@@ -7,7 +7,7 @@ import DocTableOfContentComponent from "../components/DocTableOfContentComponent
 export const metadata: Metadata = {
   title: "Installation - Databasus Documentation",
   description:
-    "Learn how to install Databasus using automated script, Docker run, Docker Compose or Helm for Kubernetes. Simple zero-config installation for your self-hosted PostgreSQL backup system.",
+    "Learn how to install Databasus using automated script, Docker run, Docker Compose, Helm for Kubernetes or Caddy reverse proxy. Simple zero-config installation for your self-hosted PostgreSQL backup system.",
   keywords: [
     "Databasus installation",
     "Docker installation",
@@ -19,11 +19,13 @@ export const metadata: Metadata = {
     "Kubernetes",
     "Helm chart",
     "K8s deployment",
+    "Caddy reverse proxy",
+    "HTTPS setup",
   ],
   openGraph: {
     title: "Installation - Databasus Documentation",
     description:
-      "Learn how to install Databasus using automated script, Docker run, Docker Compose or Helm for Kubernetes. Simple zero-config installation for your self-hosted PostgreSQL backup system.",
+      "Learn how to install Databasus using automated script, Docker run, Docker Compose, Helm for Kubernetes or Caddy reverse proxy. Simple zero-config installation for your self-hosted PostgreSQL backup system.",
     type: "article",
     url: "https://databasus.com/installation",
   },
@@ -31,7 +33,7 @@ export const metadata: Metadata = {
     card: "summary",
     title: "Installation - Databasus Documentation",
     description:
-      "Learn how to install Databasus using automated script, Docker run, Docker Compose or Helm for Kubernetes. Simple zero-config installation for your self-hosted PostgreSQL backup system.",
+      "Learn how to install Databasus using automated script, Docker run, Docker Compose, Helm for Kubernetes or Caddy reverse proxy. Simple zero-config installation for your self-hosted PostgreSQL backup system.",
   },
   alternates: {
     canonical: "https://databasus.com/installation",
@@ -80,6 +82,33 @@ sudo curl -sSL https://raw.githubusercontent.com/databasus/databasus/refs/heads/
 
   const helmUpgrade = `helm upgrade databasus oci://ghcr.io/databasus/charts/databasus -n databasus`;
 
+  const dockerComposeCaddy = `services:
+  databasus:
+    container_name: databasus
+    image: databasus/databasus:latest
+    volumes:
+      - ./databasus-data:/databasus-data
+    restart: unless-stopped
+    # No port exposed - Caddy handles external access
+
+  caddy:
+    container_name: caddy
+    image: caddy:latest
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./caddy-data:/data
+      - ./caddy-config:/config
+    restart: unless-stopped
+    depends_on:
+      - databasus`;
+
+  const caddyfile = `backup.example.com {
+    reverse_proxy databasus:4005
+}`;
+
   return (
     <>
       {/* JSON-LD Structured Data */}
@@ -91,7 +120,7 @@ sudo curl -sSL https://raw.githubusercontent.com/databasus/databasus/refs/heads/
             "@type": "TechArticle",
             headline: "Installation - Databasus Documentation",
             description:
-              "Learn how to install Databasus using automated script, Docker run, Docker Compose or Helm for Kubernetes. Simple zero-config installation for your self-hosted PostgreSQL backup system.",
+              "Learn how to install Databasus using automated script, Docker run, Docker Compose, Helm for Kubernetes or Caddy reverse proxy. Simple zero-config installation for your self-hosted PostgreSQL backup system.",
             author: {
               "@type": "Organization",
               name: "Databasus",
@@ -143,6 +172,11 @@ sudo curl -sSL https://raw.githubusercontent.com/databasus/databasus/refs/heads/
                 name: "Kubernetes with Helm",
                 text: "Use the official Helm chart to deploy Databasus on Kubernetes with StatefulSet, persistent storage and optional ingress.",
               },
+              {
+                "@type": "HowToStep",
+                name: "Running with Caddy reverse proxy",
+                text: "Use Docker Compose with Caddy for production deployments with automatic HTTPS certificates.",
+              },
             ],
           }),
         }}
@@ -161,9 +195,10 @@ sudo curl -sSL https://raw.githubusercontent.com/databasus/databasus/refs/heads/
               <h1 id="installation">Installation</h1>
 
               <p className="text-lg text-gray-400">
-                You have four ways to install Databasus: automated script
-                (recommended), simple Docker run, Docker Compose setup or Helm
-                for Kubernetes.
+                You have multiple ways to install Databasus: automated script
+                (recommended), simple Docker run, Docker Compose, Helm for
+                Kubernetes or Docker Compose with Caddy for production
+                deployments.
               </p>
 
               <h2 id="system-requirements">System requirements</h2>
@@ -352,6 +387,77 @@ sudo curl -sSL https://raw.githubusercontent.com/databasus/databasus/refs/heads/
                   Helm chart documentation
                 </a>
                 .
+              </p>
+
+              <h2 id="caddy-reverse-proxy">Running with Caddy reverse proxy</h2>
+
+              <p>
+                For production deployments, you can use{" "}
+                <a
+                  href="https://caddyserver.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-400 hover:text-blue-300"
+                >
+                  Caddy
+                </a>{" "}
+                as a reverse proxy to get automatic HTTPS certificates and
+                secure access to Databasus. Below is a complete Docker Compose
+                setup with Caddy.
+              </p>
+
+              <h3 id="caddy-docker-compose">Docker Compose with Caddy</h3>
+
+              <p>
+                Create a <code>docker-compose.yml</code> file:
+              </p>
+
+              <div className="relative my-6">
+                <pre className="overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-gray-100">
+                  <code>{dockerComposeCaddy}</code>
+                </pre>
+                <div className="absolute right-2 top-2">
+                  <CopyButton text={dockerComposeCaddy} />
+                </div>
+              </div>
+
+              <p>
+                Create a <code>Caddyfile</code> in the same directory:
+              </p>
+
+              <div className="relative my-6">
+                <pre className="overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-gray-100">
+                  <code>{caddyfile}</code>
+                </pre>
+                <div className="absolute right-2 top-2">
+                  <CopyButton text={caddyfile} />
+                </div>
+              </div>
+
+              <p>Then start the services:</p>
+
+              <div className="relative my-6">
+                <pre className="overflow-x-auto rounded-lg bg-gray-900 p-4 text-sm text-gray-100">
+                  <code>docker compose up -d</code>
+                </pre>
+                <div className="absolute right-2 top-2">
+                  <CopyButton text="docker compose up -d" />
+                </div>
+              </div>
+
+              <p>This setup provides:</p>
+
+              <ul>
+                <li>✅ Automatic HTTPS with Let&apos;s Encrypt certificates</li>
+                <li>✅ HTTP to HTTPS redirect</li>
+                <li>✅ Reverse proxy to Databasus</li>
+                <li>✅ Persistent data for both Caddy and Databasus</li>
+              </ul>
+
+              <p>
+                Replace <code>backup.example.com</code> with your actual domain.
+                Make sure your domain&apos;s DNS is pointing to your
+                server&apos;s IP address before starting the services.
               </p>
 
               <h2 id="getting-started">Getting started</h2>
