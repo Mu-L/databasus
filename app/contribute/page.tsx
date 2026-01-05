@@ -303,41 +303,6 @@ export default function ContributePage() {
                   </strong>
                 </li>
               </ol>
-
-              <h2 id="features-available">
-                Features available for contribution
-              </h2>
-
-              <p>You can take any of tasks below into work</p>
-
-              <h3 id="storages">Storages</h3>
-
-              <ul>
-                <li>Add FTP</li>
-                <li>Add Dropbox</li>
-                <li>Add OneDrive</li>
-                <li>Add Yandex Drive</li>
-              </ul>
-
-              <h3 id="notifications-tasks">Notifications tasks</h3>
-
-              <ul>
-                <li>Add Mattermost</li>
-                <li>Add Gotify</li>
-              </ul>
-
-              <h2 id="project-plans">Project plans (not for contribution)</h2>
-
-              <ul>
-                <li>
-                  Change backups naming from &#123;uuid&#125;.dump to
-                  &#123;db_name&#125;_&#123;date&#125;_&#123;uuid&#125;.dump
-                  with back compatibility
-                </li>
-                <li>Add SSH tunneling</li>
-                <li>Add HTTPS for Databasus</li>
-                <li>Add support of other languages</li>
-              </ul>
             </article>
           </div>
         </main>
